@@ -77,8 +77,7 @@ pipeline {
                  Build URL: ${env.BUILD_URL}
                  SonarQube: ${SONARQUBE_URL}/dashboard?id=${PROJECT_KEY}
 
-                 ⚠️ Note: Integration tests were skipped due to configuration issues
-                 """
+
         }
         failure {
             mail to: "${EMAIL_TO}",

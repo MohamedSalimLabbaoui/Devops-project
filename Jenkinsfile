@@ -2,31 +2,60 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven3'    // Nouveau nom
-        jdk 'JDK17'       // Nouveau nom
+        maven 'maven3'
+        jdk 'JDK17'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "📥 Cloning repository..."
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                echo "🔨 Building project..."
-                sh 'mvn clean install -DskipTests'
+                echo "🔨 Building and running all tests..."
+                sh 'mvn clean test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo "🔍 Analyzing code quality with SonarQube..."
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=student-management'
+                }
             }
         }
     }
 
     post {
         always {
+            echo "🎓 Pipeline finished: ${currentBuild.currentResult}"
+        }
+        success {
             mail to: 'labbaouisalim749@gmail.com',
-                 subject: "Pipeline finished: ${currentBuild.currentResult}",
-                 body: "Job finished with result: ${currentBuild.currentResult}"
+                 subject: "✅ SUCCESS - Student Management Build #${env.BUILD_NUMBER}",
+                 body: """
+                 🎓 Student Management System - Build Successful!
+
+                 ✅ All tests passed
+                 ✅ SonarQube analysis completed
+
+                 Build URL: ${env.BUILD_URL}
+                 SonarQube: http://localhost:9000
+                 """
+        }
+        failure {
+            mail to: 'labbaouisalim749@gmail.com',
+                 subject: "❌ FAILED - Student Management Build #${env.BUILD_NUMBER}",
+                 body: "Build failed! Check: ${env.BUILD_URL}"
         }
     }
 }

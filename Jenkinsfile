@@ -78,6 +78,7 @@ pipeline {
                  SonarQube: ${SONARQUBE_URL}/dashboard?id=${PROJECT_KEY}
 
 
+                 """
         }
         failure {
             mail to: "${EMAIL_TO}",
